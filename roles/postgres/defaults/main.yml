@@ -1,0 +1,16 @@
+---
+# defaults file for postgres
+# Postgres Docker container configuration
+postgres_docker_tag: 11.4-alpine
+postgres_docker_network: []
+postgres_docker_exposed_port: 5432
+postgres_docker_data_dir: /etc/postgres
+postgres_docker_user: postgres
+postgres_docker_password: mysecretpassword
+postgres_docker_database: mydb
+
+# Postgres user creation configuration
+pg_write_user: pgwrite
+pg_write_password: mysecretpassword2
+pg_read_user: pgread
+pg_read_password: mysecretpassword3

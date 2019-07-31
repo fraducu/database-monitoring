@@ -1,0 +1,15 @@
+---
+
+- name: Start the container
+  docker_container:
+    name: "{{ grafana_container_name }}"
+    image: "{{ grafana_container_image }}:{{ grafana_container_image_tag | default('latest')}}"
+    hostname: "{{ grafana_container_hostname }}"
+    state: started
+    restart_policy: "{{ grafana_container_restart_policy }}"
+    ports:
+      - "{{ grafana_publish_port }}:3000/tcp"
+    env: "{{ grafana_environment_vars | default(omit)}}"
+    volumes:
+      - "{{ grafana_data_dir }}:/var/lib/grafana"
+      

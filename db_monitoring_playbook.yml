@@ -1,0 +1,37 @@
+---
+- hosts: localhost
+  become: yes
+  pre_tasks:
+    - name: Update apt cache.
+      apt:
+        update_cache: true
+        cache_valid_time: 600
+      changed_when: false
+
+  roles:
+    - role: docker
+    - role: postgres
+    - role: entercloudsuite.prometheus-exporter
+      prometheus_exporter_name: postgres_exporter
+      url: 'https://github.com/wrouesnel/postgres_exporter/releases/download/v0.5.1/postgres_exporter_v0.5.1_linux-amd64.tar.gz'
+      prometheus_environment_variables:
+        'DATA_SOURCE_NAME': 'postgresql://postgres:mysecretpassword@localhost:5432/?sslmode=disable'
+    - role: prometheus
+      prometheus_targets:
+        - hosts: [localhost]
+          port: 9187
+          jobname: postgres-metrics
+          scrape_interval: 5s
+          metrics_path: /metrics
+    - role: grafana
+      grafana_container_image: grafana/grafana
+      grafana_container_image_tag: latest
+      grafana_environment_vars:
+        'GF_SECURITY_ADMIN_USER': 'admin'
+        'GF_SECURITY_ADMIN_PASSWORD': 'grafana'
+        'GF_SERVER_ROOT_URL': 'http://grafana.test.server'
+      grafana_datasources:
+        - { name: "from_ansible", ds_type: "prometheus", access: "direct", url: "http://localhost:9090"}
+      # grafana_plugins:
+      #   - { name: grafana-piechart-panel }
+      #   - { name: grafana-clock-panel, state: absent }

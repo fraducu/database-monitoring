@@ -1,0 +1,65 @@
+# {{ ansible_managed }}
+# Prometheus configuration
+
+# my global config
+global:
+  scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  evaluation_interval: 15s # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'prometheus'
+
+
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - "rules/*.rules.yml"
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+  - job_name: 'prometheus'
+
+    # metrics_path defaults to '/metrics'
+    # scheme defaults to 'http'.
+
+    static_configs:
+      - targets: {{ prometheus_static_targets | to_json }}
+
+{% for item in prometheus_targets %}
+
+  - job_name: {{ item.jobname }}
+    scrape_interval: {{ item.scrape_interval | default('15s') }}
+    metrics_path: {{ item.metrics_path | default('/metrics') }}
+    static_configs:
+{%   if 'hosts' in item %}
+    {# BUG in Ansible:
+       https://github.com/ansible/ansible/issues/27299#issuecomment-331068246
+       Workaround: "| to_json | from_json"
+    #}
+    - targets: {{ item.hosts | to_json | from_json | json_query("map(&join(':', [@, '" + (item.port | string) + "']), @)") | to_json }}
+{%   endif %}
+{%   for group in item.groups | default([]) %}
+{%     for host in groups[group] | default([]) | sort %}
+    - targets:
+      - {{
+          (hostvars[host][
+            'ansible_' + (item.iface | default('eth0'))].ipv4.address +
+            ":" + (item.port | string)) | to_json
+        }}
+      labels:
+        instance: {{ hostvars[host].ansible_hostname }}
+{%     endfor %}
+{%   endfor %}
+{% endfor %}
+
+  # Other target files
+  # (reloaded automatically, can be used for dynamic updates)
+  - job_name: additional targets
+    file_sd_configs:
+    - files:
+      - "/etc/prometheus/targets/*.yml"

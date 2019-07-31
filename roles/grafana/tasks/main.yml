@@ -1,0 +1,18 @@
+---
+
+- import_tasks: preflight.yml
+  tags:
+    - preflight
+
+- import_tasks: install.yml
+  tags:
+    - install
+
+- import_tasks: postconfiguration.yml
+  tags:
+    - postconfiguration
+
+      #- import-tasks: plugins.yml
+      # tags:
+      # - plugins
+    

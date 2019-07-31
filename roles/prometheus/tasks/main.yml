@@ -1,0 +1,61 @@
+---
+# tasks file for prometheus
+- name: Create directories for config files
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+  - /etc/prometheus
+  - /etc/prometheus/rules
+  - /etc/prometheus/targets
+
+- name: Prometheus configuration file
+  template:
+    dest: /etc/prometheus/prometheus.yml
+    force: yes
+    src: etc-prometheus-prometheus-yml.j2
+  register: prometheus_configuration
+
+- name: File sd configs
+  template:
+    dest: /etc/prometheus/targets/{{ item.groupname }}.yml
+    force: yes
+    src: file_sd_config-template-yml.j2
+  with_items:
+    - "{{ prometheus_sd_targets }}"
+
+- name: Create Prometheus container
+  docker_container:
+    command: >
+      --config.file=/etc/prometheus/prometheus.yml
+      --storage.tsdb.path=/prometheus
+      --web.console.libraries=/usr/share/prometheus/console_libraries
+      --web.console.templates=/usr/share/prometheus/consoles
+      {{ prometheus_additional_command_args }}
+    image: "prom/prometheus:{{ prometheus_docker_tag }}"
+    name: prometheus
+    networks: "{{ omit if not prometheus_docker_network else prometheus_docker_network }}"
+    ports:
+      - "{{ prometheus_docker_exposed_port }}:9090"
+    recreate: "{{ prometheus_configuration.changed }}"
+    restart_policy: always
+    state: started
+    volumes:
+    # We could mount /etc/prometheus instead but the Docker image contains
+    # additional (optional) files
+    - /etc/prometheus/rules/:/etc/prometheus/rules/:ro
+    - /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - /etc/prometheus/targets/:/etc/prometheus/targets/:ro
+    - prometheus-data:/prometheus
+
+# check prometheus config file mount
+- name: prometheus | check docker host file mounts
+  stat:
+    path: /etc/prometheus/prometheus.yml
+  register: prometheus_docker_file_mounts
+
+- name: prometheus | assert docker host file mounts
+  assert:
+    that: 'prometheus_docker_file_mounts.stat.isreg'
+  # This is a sanity check so use no_log to reduce the excessive log output
+  no_log: true

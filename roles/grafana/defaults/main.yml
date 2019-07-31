@@ -1,0 +1,22 @@
+---
+# ------------------------------------------------------------------------------
+# Module Configuration
+# ------------------------------------------------------------------------------
+grafana_data_dir: "/var/grafana/data"
+grafana_admin_username: admin
+grafana_admin_password: grafana
+
+# ------------------------------------------------------------------------------
+# Container Configuration
+# ------------------------------------------------------------------------------
+grafana_container_name: grafana
+grafana_container_hostname: grafana
+grafana_container_restart_policy: unless-stopped
+grafana_publish_port: 3000
+
+# ------------------------------------------------------------------------------
+# Service Configuration
+# ------------------------------------------------------------------------------
+grafana_environment_vars:
+  GF_SECURITY_ADMIN_USER: "{{ grafana_admin_username }}"
+  GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password }}"

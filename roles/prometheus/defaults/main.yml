@@ -1,0 +1,15 @@
+---
+# defaults file for prometheus
+# Prometheus docker container configuration
+prometheus_docker_tag: v2.10.0
+prometheus_docker_exposed_port: 9090
+prometheus_docker_network: []
+prometheus_additional_command_args: ''
+
+# Prometheus configuration
+prometheus_static_targets:
+- 'localhost:9090'
+
+prometheus_targets: []
+
+prometheus_sd_targets: []

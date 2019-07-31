@@ -1,0 +1,69 @@
+---
+# tasks file for postgres
+- name: Create Postgres container
+  docker_container:
+    name: postgres
+    image: "postgres:{{ postgres_docker_tag }}"
+    state: started
+    restart_policy: unless-stopped
+    networks: "{{ omit if not postgres_docker_network else postgres_docker_network }}"
+    ports:
+      - "{{ postgres_docker_exposed_port }}:5432"
+    volumes:
+      - "{{ postgres_docker_data_dir }}:/var/lib/postgresql/data"
+    env:
+      POSTGRES_USER: "{{ postgres_docker_user }}"
+      POSTGRES_PASSWORD: "{{ postgres_docker_password }}"
+      POSTGRES_DB: "{{ postgres_docker_database }}"
+  register: postgres_container
+  notify: Wait until PostgreSQL starts up
+
+# install pg tools when on debian-based systems
+- name: Ensure db client packages are installed
+  apt: name={{ item }} state=present update_cache=yes
+  loop: [ 'postgresql', 'libpq-dev', 'python-psycopg2']
+  register: result
+
+- name: Create "{{ pg_write_user }}" user
+  postgresql_user: >
+    name={{ pg_write_user }}
+    password={{ pg_write_password }}
+    role_attr_flags=LOGIN,CREATEDB
+    priv=CONNECT
+    login_host=localhost
+    db={{ postgres_docker_database }}
+    port={{ postgres_docker_exposed_port }}
+    login_password={{ postgres_docker_password }}
+
+- name: Ensure the "{{ pg_write_user }}" user has correct schema privileges
+  postgresql_privs: >
+    privs=ALL
+    type=schema
+    objs=public
+    role={{ pg_write_user }}
+    login_host=localhost
+    db={{ postgres_docker_database }}
+    port={{ postgres_docker_exposed_port }}
+    login_password={{ postgres_docker_password }}
+
+- name: Create "{{ pg_read_user }}" user
+  postgresql_user: >
+    name={{ pg_read_user }}
+    password={{ pg_read_password }}
+    role_attr_flags=LOGIN
+    priv=CONNECT
+    login_host=localhost
+    db={{ postgres_docker_database }}
+    port={{ postgres_docker_exposed_port }}
+    login_password={{ postgres_docker_password }}
+
+- name: Ensure the "{{ pg_read_user }}" user has correct schema privileges
+  postgresql_privs: >
+    privs=USAGE
+    type=schema
+    objs=public
+    role={{ pg_read_user }}
+    login_host=localhost
+    db={{ postgres_docker_database }}
+    port={{ postgres_docker_exposed_port }}
+    login_password={{ postgres_docker_password }}

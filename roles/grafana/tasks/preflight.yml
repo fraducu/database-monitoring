@@ -1,0 +1,10 @@
+---
+
+# ref: http://docs.grafana.org/installation/docker/
+- name: Ensure directory exists (with specific uid:gid required by the container. see ref)
+  file:
+    path: "{{ grafana_data_dir }}"
+    owner: "{{ grafana_container_uid }}"
+    group: "{{ grafana_container_gid }}"
+    state: directory
+    

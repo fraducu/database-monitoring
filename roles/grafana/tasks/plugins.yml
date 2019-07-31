@@ -1,0 +1,13 @@
+---
+
+- name: Install / Update Plugins
+  grafana_plugin:
+    state: "{{ item.state | default(omit) }}"
+    name: "{{ item.name }}"
+    grafana_plugin_url: "{{ item.plugin_url | default(omit) }}"
+    grafana_plugins_dir: "{{ item.plugins_dir | default(omit) }}"
+    grafana_repo: "{{ item.repo | default(omit) }}"
+    version: "{{ item.version | default(omit) }}"
+  with_items: "{{ grafana_plugins }}"
+  when: grafana_plugins is defined
+  

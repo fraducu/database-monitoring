@@ -1,0 +1,6 @@
+---
+
+grafana_container_image: grafana/grafana
+grafana_container_image_tag: latest
+grafana_container_uid: 472
+grafana_container_gid: 472

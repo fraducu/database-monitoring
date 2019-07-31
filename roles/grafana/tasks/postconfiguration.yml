@@ -1,0 +1,58 @@
+---
+
+- name: Wait for grafana port is open to the ansible executor
+  wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: "{{ grafana_publish_port }}"
+    delay: 10
+  delegate_to: localhost
+
+
+- name: Check api status and retry until is available
+  uri:
+    url: "http://{{ ansible_default_ipv4.address }}:{{grafana_publish_port}}/api/admin/settings"
+    method: GET
+    user: "{{ grafana_admin_username }}"
+    password: "{{ grafana_admin_password }}"
+    force_basic_auth: true
+    validate_certs: false
+    status_code: 200
+  register: response
+  until: response.status == 200
+  retries: 10
+  delay: 20
+
+- name: Import dashboards
+  grafana_dashboard:
+    grafana_url: http://{{ ansible_default_ipv4.address }}:{{ grafana_publish_port }}
+    grafana_user: "{{ grafana_admin_username }}"
+    grafana_password: "{{ grafana_admin_password }}"
+    org_id: 1
+    state: present
+    message: Updated by ansible
+    overwrite: true
+    path: "{{ item }}"
+  with_fileglob:
+    - "{{ inventory_dir }}/resources/grafana/dashboards/*.json"
+  delegate_to: localhost
+  ignore_errors: true
+
+- name: Import Datasources
+  grafana_datasource:
+    grafana_url: http://{{ ansible_default_ipv4.address }}:{{ grafana_publish_port }}
+    grafana_user: "{{ grafana_admin_username }}"
+    grafana_password: "{{ grafana_admin_password }}"
+    org_id: "{{ item.org | default(1) }}"
+    name: "{{ item.name }}"
+    access: "{{ item.access | default(proxy) }}"
+    ds_type: "{{ item.ds_type }}"
+    url: "{{ item.url }}"
+    database: "{{ item.database | default(omit) }}"
+    time_interval: "{{ item.time_interval | default(omit) }}"
+    user: "{{ item.user | default(omit) }}"
+    password: "{{ item.password | default(omit) }}"
+    sslmode: "{{ item.sslmode | default(omit) }}"
+    state: present
+  with_items: "{{ grafana_datasources }}"
+  when: grafana_datasources is defined
+  delegate_to: localhost
