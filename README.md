@@ -8,7 +8,7 @@ _I divided the task even further in more roles as they offer a more clear separa
 _This is still under development and it's not working 100%. Even if the role is not completed successfully you can still log in and finish the grafana configuration manually. The are still couple of open points and bugs to be fixed but I really enjoyed the challenge._
 
 - Use of `shell` (and `command`) Ansible modules are prohibited
-_Command module is used only once in order to pass the configuration parameters for building the prometheus container. This could be avoided by building a custom image, more can be found information [here](https://prometheus.io/docs/prometheus/latest/installation/)_
+_Command module is used only once in order to pass the configuration parameters for building the prometheus container. This could be avoided by building a custom image, more information can be found [here](https://prometheus.io/docs/prometheus/latest/installation/)_
 
 - We expect the task to be completed in a tidy manner and to be fit for production use.
 _At this point this is still in development so it's not quite production ready, but I took steps to develop it in a tidy manner._
@@ -26,7 +26,7 @@ _Done. Used the ansible-galaxy module found [here](https://galaxy.ansible.com/en
 _Done. Next steps: refactor the module and create custom docker image as described in the official documentation._
 
 5. Deploy a grafana container with a dashboard for the database
-_Forked from the ansible-galaxy module found [here](ansible-galaxy install ppadial.docker_grafana). Next steps: Fix remaining Bugs so all the tasks run successfully. Current bug is at the task: Check api status and retry until is available. Error: Invalid username or password._
+_Forked from the ansible-galaxy module found [here](https://galaxy.ansible.com/ppadial/docker_grafana). Next steps: Fix remaining Bugs so all the tasks run successfully. Current bug is at the task: Check api status and retry until is available. Error: Invalid username or password._
 
 6. Make some writing test against the database
 _Only the initial DB was created. Next steps: introduce new tasks to postgres role using the Ansible modules (postgresql_db, postgresql_table, postgresql_query)_
