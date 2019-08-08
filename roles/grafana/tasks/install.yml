@@ -7,9 +7,9 @@
     hostname: "{{ grafana_container_hostname }}"
     state: started
     restart_policy: "{{ grafana_container_restart_policy }}"
+    networks: "{{ omit if not grafana_docker_network else grafana_docker_network }}"
     ports:
       - "{{ grafana_publish_port }}:3000/tcp"
     env: "{{ grafana_environment_vars | default(omit)}}"
     volumes:
       - "{{ grafana_data_dir }}:/var/lib/grafana"
-      

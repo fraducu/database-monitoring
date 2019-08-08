@@ -1,5 +1,5 @@
 ---
-- hosts: localhost
+- hosts: all
   become: yes
   pre_tasks:
     - name: Update apt cache.
@@ -7,6 +7,11 @@
         update_cache: true
         cache_valid_time: 600
       changed_when: false
+    - name: Workaround to get host IP inside docker
+      shell: hostname -I | cut -d' ' -f1
+      register: hostname_ip
+      check_mode: no
+      changed_when: no
 
   roles:
     - role: docker
@@ -18,7 +23,7 @@
         'DATA_SOURCE_NAME': 'postgresql://postgres:mysecretpassword@localhost:5432/?sslmode=disable'
     - role: prometheus
       prometheus_targets:
-        - hosts: [localhost]
+        - hosts: ["{{ hostname_ip.stdout }}"]
           port: 9187
           jobname: postgres-metrics
           scrape_interval: 5s
@@ -31,7 +36,7 @@
         'GF_SECURITY_ADMIN_PASSWORD': 'grafana'
         'GF_SERVER_ROOT_URL': 'http://grafana.test.server'
       grafana_datasources:
-        - { name: "from_ansible", ds_type: "prometheus", access: "direct", url: "http://localhost:9090"}
+        - { name: "prometheus_from_ansible", ds_type: "prometheus", access: "direct", url: "http://{{ hostname_ip.stdout }}:9187"}
       # grafana_plugins:
       #   - { name: grafana-piechart-panel }
       #   - { name: grafana-clock-panel, state: absent }

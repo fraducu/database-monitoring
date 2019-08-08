@@ -12,7 +12,7 @@
 
 - name: Install required system packages
   apt: name={{ item }} state=present update_cache=yes
-  loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python-pip', 'python-setuptools', 'virtualenv' ]
+  loop: [ 'apt-transport-https', 'ca-certificates', 'curl', 'software-properties-common', 'python-pip', 'python3-pip', 'python-setuptools', 'virtualenv' ]
   register: result
   until: result is success
   retries: 5
@@ -36,7 +36,7 @@
 
 - name: Install Docker
   apt: name={{ item }} state=present update_cache=yes
-  loop: [ 'docker', 'docker-compose' ]
+  loop: [ 'docker.io', 'docker-compose' ]
   register: result
   until: result is success
   retries: 5
