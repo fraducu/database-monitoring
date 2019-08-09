@@ -11,7 +11,7 @@ grafana_admin_password: grafana
 # ------------------------------------------------------------------------------
 grafana_container_name: grafana
 grafana_container_hostname: grafana
-grafana_docker_network: []
+grafana_docker_network: [name: network_one]
 grafana_container_restart_policy: unless-stopped
 grafana_publish_port: 3000
 
